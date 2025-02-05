@@ -1,0 +1,103 @@
+```{r}
+set.seed(1)
+data <- read.table("/Desktop/Master/Introduction to Analytics Modeling/HW4/hw4-SP22/temps.txt", header = TRUE)
+head(data)
+```
+
+```{r}
+data <- as.vector(unlist(data[,2:21]))
+myts <- ts(data, start = 1996, frequency = 123)
+
+```
+
+```{r}
+m1 <- HoltWinters(myts, beta = FALSE, gamma = FALSE)
+m1
+
+```
+
+```{r}
+m2 <- HoltWinters(myts, gamma = FALSE)
+m2
+
+```
+
+```{r}
+m3a <- HoltWinters(myts)
+m3a
+
+```
+
+```{r}
+m3m <- HoltWinters(myts, seasonal = "multiplicative")
+m3m
+m <- matrix(m3m$fitted[,4], ncol = 123)
+```
+
+```{r}
+m <- matrix(m3m$fitted[,4],ncol=123)
+```
+
+```{r}
+install.packages("gridExtra")
+```
+
+```{r}
+install.packages("forecast")
+install.packages("ggplot2")
+```
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(gridExtra)
+library(forecast)
+```
+
+```{r}
+if(!requireNamespace("gridExtra", quietly = TRUE)) {
+  install.packages("gridExtra")
+}
+library(gridExtra)
+
+```
+
+```{r}
+library(ggplot2)
+if(!requireNamespace("gridExtra", quietly = TRUE)) {
+  install.packages("gridExtra")
+}
+library(gridExtra)
+library(forecast)
+
+ts_df <- data.frame(
+  Time = as.numeric(time(myts)),
+  Actual = as.numeric(myts),
+  Normalized = as.numeric((myts - mean(myts)) / sd(myts))
+)
+
+p_actual <- ggplot(ts_df, aes(x = Time, y = Actual)) +
+  geom_line(color = "blue", linewidth = 1) +
+  ggtitle("Actual Time Series Data") +
+  xlab("Time") +
+  ylab("Value") +
+  theme_minimal()
+
+p_normalized <- ggplot(ts_df, aes(x = Time, y = Normalized)) +
+  geom_line(color = "red", linewidth = 1) +
+  ggtitle("Normalized Time Series Data") +
+  xlab("Time") +
+  ylab("Standardized Value") +
+  theme_minimal()
+
+grid.arrange(p_actual, p_normalized, ncol = 1)
+
+decomp <- decompose(myts, type = "additive")
+autoplot(decomp) + ggtitle("Decomposition of Time Series")
+
+par(mfrow = c(1,2))
+acf(myts, main = "ACF of Time Series")
+pacf(myts, main = "PACF of Time Series")
+par(mfrow = c(1,1))
+
+```
